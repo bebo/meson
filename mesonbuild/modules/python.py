@@ -258,6 +258,13 @@ import json
 print (json.dumps(sysconfig.get_paths(scheme='posix_prefix', vars={'base': '', 'platbase': '', 'installed_base': ''})))
 '''
 
+INSTALL_PATHS_COMMAND_WIN = '''
+import sysconfig
+import json
+
+print (json.dumps(sysconfig.get_paths(scheme='nt', vars={'base': '', 'platbase': '', 'installed_base': ''})))
+'''
+
 
 IS_PYPY_COMMAND = '''
 import sys
@@ -275,7 +282,10 @@ class PythonInstallation(ExternalProgramHolder, InterpreterObject):
         prefix = self.interpreter.environment.coredata.get_builtin_option('prefix')
         self.variables = json.loads(run_command(python, VARIABLES_COMMAND))
         self.paths = json.loads(run_command(python, PATHS_COMMAND))
-        install_paths = json.loads(run_command(python, INSTALL_PATHS_COMMAND))
+        if mesonlib.is_windows():
+            install_paths = json.loads(run_command(python, INSTALL_PATHS_COMMAND_WIN))
+        else:
+            install_paths = json.loads(run_command(python, INSTALL_PATHS_COMMAND))
         self.platlib_install_path = os.path.join(prefix, install_paths['platlib'][1:])
         self.purelib_install_path = os.path.join(prefix, install_paths['purelib'][1:])
         self.version = run_command(python, "import sysconfig; print (sysconfig.get_python_version())")
